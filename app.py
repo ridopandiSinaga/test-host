@@ -305,7 +305,7 @@ chain = (
 col = st.columns([0.15, 0.85], vertical_alignment="center")
 
 with col[0]:
-    st.image(image="D:/PPKS/test-hosting/asset/logo-PPKS.png", use_column_width=True)
+    st.image(image="asset/logo-PPKS.png", use_column_width=True)
 with col[1]:
     st.header("| Chat Bot PPKS 🤖")
 
@@ -323,13 +323,13 @@ if 'need_greetings' not in st.session_state:
 
 # Displaying all historical messages
 for message in st.session_state.messages:
-    st.chat_message(message['role'], avatar= "D:/PPKS/test-hosting/asset/logo-PPKS.png" if message['role'] == "assistant" else None).markdown(message['content'])
+    st.chat_message(message['role'], avatar= "asset/logo-PPKS.png" if message['role'] == "assistant" else None).markdown(message['content'])
 
 if st.session_state.need_greetings :
 
     # greet users
     greetings = "Selamat Datang, ada yang bisa saya bantu?"
-    st.chat_message("assistant", avatar="D:/PPKS/test-hosting/asset/logo-PPKS.png").markdown(greetings)
+    st.chat_message("assistant", avatar="asset/logo-PPKS.png").markdown(greetings)
 
     st.session_state.messages.append({'role' : 'assistant', 'content': greetings})
 
@@ -366,7 +366,7 @@ if prompt:
     # st.text_area("hasil response", value=response, height=200)
 
     # Displaying response
-    st.chat_message("assistant", avatar="D:/PPKS/test-hosting/asset/logo-PPKS.png").markdown(response)
+    st.chat_message("assistant", avatar="asset/logo-PPKS.png").markdown(response)
 
     # Saving response to chat history in session state
     st.session_state.messages.append({'role' : 'assistant', 'content': response})
