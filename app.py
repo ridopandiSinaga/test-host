@@ -45,22 +45,22 @@ load_dotenv()
 # llm = load_llm_ollama()
 
 # Load llm model using Groq
-# @st.cache_resource
-# def load_llm_groq():
-#     return ChatGroq(
-#         model='llama-3.1-70b-versatile', #llama-3.1-70b-versatile, llama-3.1-8b-instant
-#         # temprature=0
-#     )
-# llm = load_llm_groq()
-
-# load llm model using gemini
 @st.cache_resource
 def load_llm_groq():
-    return ChatGoogleGenerativeAI(
-        model="gemini-pro",
-        convert_system_message_to_human=True
-        )
+    return ChatGroq(
+        model='llama-3.1-70b-versatile', #llama-3.1-70b-versatile, llama-3.1-8b-instant
+        # temprature=0
+    )
 llm = load_llm_groq()
+
+# load llm model using gemini
+# @st.cache_resource
+# def load_llm_groq():
+#     return ChatGoogleGenerativeAI(
+#         model="gemini-pro",
+#         convert_system_message_to_human=True
+#         )
+# llm = load_llm_groq()
 
 # Load knowledge graph fron neo4j
 @st.cache_resource
