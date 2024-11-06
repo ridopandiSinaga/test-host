@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field, field_validator
 from langchain_community.vectorstores.neo4j_vector import remove_lucene_chars
 from langchain_nomic import NomicEmbeddings
 # from langchain_ollama import ChatOllama
-# from langchain_groq import ChatGroq
+from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 
