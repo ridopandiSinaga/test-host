@@ -22,7 +22,8 @@ from pydantic import BaseModel, Field, field_validator
 from langchain_community.vectorstores.neo4j_vector import remove_lucene_chars
 from langchain_nomic import NomicEmbeddings
 # from langchain_ollama import ChatOllama
-from langchain_groq import ChatGroq
+# from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 
 st.set_page_config(
@@ -34,23 +35,32 @@ st.set_page_config(
 # Load environtment app
 load_dotenv()
 
-# Load llm model
+# Load llm model using ollama
 # @st.cache_resource
 # def load_llm_ollama():
 #     return ChatOllama(
 #         model='llama3.1:8b-instruct-fp16',
 #         temprature=0
 #     )
-# llm_ollama = load_llm_ollama()
+# llm = load_llm_ollama()
 
-# Load llm model groq
+# Load llm model using Groq
+# @st.cache_resource
+# def load_llm_groq():
+#     return ChatGroq(
+#         model='llama-3.1-70b-versatile', #llama-3.1-70b-versatile, llama-3.1-8b-instant
+#         # temprature=0
+#     )
+# llm = load_llm_groq()
+
+# load llm model using gemini
 @st.cache_resource
 def load_llm_groq():
-    return ChatGroq(
-        model='llama-3.1-70b-versatile', #llama-3.1-70b-versatile, llama-3.1-8b-instant
-        # temprature=0
-    )
-llm_ollama = load_llm_groq()
+    return ChatGoogleGenerativeAI(
+        model="gemini-pro",
+        convert_system_message_to_human=True
+        )
+llm = load_llm_groq()
 
 # Load knowledge graph fron neo4j
 @st.cache_resource
@@ -111,7 +121,7 @@ prompt = ChatPromptTemplate.from_messages(
     ]
 )
 
-entity_chain = prompt | llm_ollama.with_structured_output(Entities)
+entity_chain = prompt | llm.with_structured_output(Entities)
 
 
 # Generate Query
@@ -157,16 +167,6 @@ Unstructured data:
     """
     return final_data
 
-# Template for giving context to LLM 
-# _template = """Given a chat history and the latest user question \
-# which might reference context in the chat history, formulate a standalone question \
-# which can be understood without the chat history. Do NOT answer the question, \
-# just reformulate it if needed and otherwise return it as is. \
-# Note that just use the 2 latest question if you don't get it you can use 3 latest question.
-# Chat History:
-# {chat_history}
-# Follow Up Input: {question}
-# Standalone question:"""
 
 _template = """
 You are an assistant skilled in paraphrasing questions, ensuring they align with the current conversation context. Every time a new question appears, check the recent chat history to decide if it’s on the same topic or if there’s a new topic shift. 
@@ -269,7 +269,7 @@ _search_query = RunnableBranch(
             chat_history=lambda x: _format_chat_history(x["chat_history"])
         )
         | CONDENSE_QUESTION_PROMPT
-        | llm_ollama
+        | llm
         | StrOutputParser(),
     ),
     # Else, we have no chat history, so just pass through the question
@@ -296,7 +296,7 @@ chain = (
         }
     )
     | prompt
-    | llm_ollama
+    | llm
     | StrOutputParser()
 )
 
@@ -353,17 +353,6 @@ if prompt:
         "question" : prompt
     })
 
-    # Invoke _search_query with chat history and question
-    _search_result = _search_query.invoke({
-        "chat_history": st.session_state.chat_history, 
-        "question": prompt
-    })
-
-    # Displaying the result of _search_query in Streamlit
-    # st.subheader("Hasil _search_query:")
-    # st.text_area("Search Query ParafrasenResult", value=_search_result, height=200)
-
-    # st.text_area("hasil response", value=response, height=200)
 
     # Displaying response
     st.chat_message("assistant", avatar="asset/logo-PPKS.png").markdown(response)
