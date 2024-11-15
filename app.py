@@ -21,11 +21,12 @@ from typing import Tuple, List, Optional
 from pydantic import BaseModel, Field, field_validator
 from langchain_community.vectorstores.neo4j_vector import remove_lucene_chars
 from langchain_nomic import NomicEmbeddings
-# from langchain_ollama import ChatOllama
+from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 
+# set icon on browser
 st.set_page_config(
     page_title="PPKS | Chat Bot",
     page_icon="assets/logo-PPKS.png",
@@ -35,12 +36,13 @@ st.set_page_config(
 # Load environtment app
 load_dotenv()
 
+
 # Load llm model using ollama
 # @st.cache_resource
 # def load_llm_ollama():
 #     return ChatOllama(
 #         model='llama3.1:8b-instruct-fp16',
-#         temprature=0
+#         temperature=0
 #     )
 # llm = load_llm_ollama()
 
@@ -49,18 +51,19 @@ load_dotenv()
 def load_llm_groq():
     return ChatGroq(
         model='llama-3.1-70b-versatile', #llama-3.1-70b-versatile, llama-3.1-8b-instant
-        # temprature=0
+        # temperature=0
     )
 llm = load_llm_groq()
 
 # load llm model using gemini
 # @st.cache_resource
-# def load_llm_groq():
+# def load_llm_gemini():
 #     return ChatGoogleGenerativeAI(
-#         model="gemini-pro",
+#         model="gemini-1.5-flash",
 #         convert_system_message_to_human=True
 #         )
-# llm = load_llm_groq()
+# llm = load_llm_gemini()
+
 
 # Load knowledge graph fron neo4j
 @st.cache_resource
@@ -155,18 +158,19 @@ def structured_retriever(question: str) -> str:
         result += "\n".join([el['output'] for el in response])
     return result
 
-# Retrival knowledge
+# Retrieval knowledge
 def retriever(question: str):
     # print(f"Search query: {question}")
     structured_data = structured_retriever(question)
     unstructured_data = [el.page_content for el in vector_index.similarity_search(question, k=2)]
+    
     final_data = f"""
-    Structured data:{structured_data}
-    Unstructured data:{"#Document ". join(unstructured_data)}
+    Structured data: {structured_data}
+    Unstructured data: {"#Document ". join(unstructured_data)}
     """
     return final_data
 
-
+# Template for giving context to LLM 
 _template = """
 You are an assistant skilled in paraphrasing questions, ensuring they align with the current conversation context. Every time a new question appears, check the recent chat history to decide if it’s on the same topic or if there’s a new topic shift. 
 
@@ -299,12 +303,11 @@ chain = (
     | StrOutputParser()
 )
 
-
 # Create title for chat APP
 col = st.columns([0.15, 0.85], vertical_alignment="center")
 
 with col[0]:
-    st.image(image="assets/logo-PPKS.png", use_column_width=True)
+    st.image(image="assets/logo-PPKS.png    ", use_column_width=True)
 with col[1]:
     st.header("| Chat Bot PPKS 🤖")
 
@@ -322,13 +325,13 @@ if 'need_greetings' not in st.session_state:
 
 # Displaying all historical messages
 for message in st.session_state.messages:
-    st.chat_message(message['role'], avatar= "assets/logo-PPKS.png" if message['role'] == "assistant" else None).markdown(message['content'])
+    st.chat_message(message['role'], avatar= "assets/logo-PPKS.png  " if message['role'] == "assistant" else None).markdown(message['content'])
 
 if st.session_state.need_greetings :
 
     # greet users
     greetings = "Selamat Datang, ada yang bisa saya bantu?"
-    st.chat_message("assistant", avatar="assets/logo-PPKS.png").markdown(greetings)
+    st.chat_message("assistant", avatar="assets/logo-PPKS.png   ").markdown(greetings)
 
     st.session_state.messages.append({'role' : 'assistant', 'content': greetings})
 
@@ -337,25 +340,39 @@ if st.session_state.need_greetings :
 
 # Getting chat input from user
 prompt = st.chat_input("e.g. apa itu produk Marfu-p?")
-import time
+
+# Displaying chat prompt
 if prompt:
-    # Menampilkan pesan pengguna di chat
+    # Displaying user chat prompt
     st.chat_message("user").markdown(prompt)
 
-    # Placeholder untuk output yang akan di-update secara bertahap
-    response_placeholder = st.chat_message("assistant", avatar="assets/logo-PPKS.png")
+    # Saving user prompt to session state
+    st.session_state.messages.append({'role' : 'user', 'content': prompt})
 
-    # Mengambil respons dari model
+    # Getting response from llm model
     response = chain.invoke({
-        "chat_history": st.session_state.chat_history, 
-        "question": prompt
+        "chat_history" : st.session_state.chat_history, 
+        "question" : prompt
     })
 
-    # Variabel untuk menyimpan teks yang ditampilkan secara bertahap
-    typed_text = ""
-    for char in response:
-        typed_text += char  # Menambah karakter ke teks
-        response_placeholder.markdown(typed_text)  # Mengupdate placeholder dengan teks bertahap
-        time.sleep(0.05)  # Menentukan kecepatan karakter muncul, dapat diatur sesuai kebutuhan
+    # Invoke _search_query with chat history and question
+    # _search_result = _search_query.invoke({
+    #     "chat_history": st.session_state.chat_history, 
+    #     "question": prompt
+    # })
 
-    # Menyimpan pesan untuk ri
+    # Displaying the result of _search_query in Streamlit
+    # st.subheader("Hasil _search_query:")
+    # st.text_area("Search Query ParafrasenResult", value=_search_result, height=200)
+
+    # st.text_area("hasil response", value=response, height=200)
+
+    # Displaying response
+    st.chat_message("assistant", avatar="assets/logo-PPKS.png   ").markdown(response)
+
+    # Saving response to chat history in session state
+    st.session_state.messages.append({'role' : 'assistant', 'content': response})
+
+    # Saving user and llm response to chat history
+    st.session_state.chat_history.append((prompt, response))
+
