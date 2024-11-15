@@ -159,11 +159,10 @@ def structured_retriever(question: str) -> str:
 def retriever(question: str):
     # print(f"Search query: {question}")
     structured_data = structured_retriever(question)
-    unstructured_data = [el.page_content for el in vector_index.similarity_search(question)]
-    final_data = f"""Structured data:
-{structured_data}
-Unstructured data:
-{"#Document ". join(unstructured_data)}
+    unstructured_data = [el.page_content for el in vector_index.similarity_search(question, k=2)]
+    final_data = f"""
+    Structured data:{structured_data}
+    Unstructured data:{"#Document ". join(unstructured_data)}
     """
     return final_data
 
@@ -305,7 +304,7 @@ chain = (
 col = st.columns([0.15, 0.85], vertical_alignment="center")
 
 with col[0]:
-    st.image(image="asset/logo-PPKS.png", use_column_width=True)
+    st.image(image="assets/logo-PPKS.png", use_column_width=True)
 with col[1]:
     st.header("| Chat Bot PPKS 🤖")
 
@@ -323,13 +322,13 @@ if 'need_greetings' not in st.session_state:
 
 # Displaying all historical messages
 for message in st.session_state.messages:
-    st.chat_message(message['role'], avatar= "asset/logo-PPKS.png" if message['role'] == "assistant" else None).markdown(message['content'])
+    st.chat_message(message['role'], avatar= "assets/logo-PPKS.png" if message['role'] == "assistant" else None).markdown(message['content'])
 
 if st.session_state.need_greetings :
 
     # greet users
     greetings = "Selamat Datang, ada yang bisa saya bantu?"
-    st.chat_message("assistant", avatar="asset/logo-PPKS.png").markdown(greetings)
+    st.chat_message("assistant", avatar="assets/logo-PPKS.png").markdown(greetings)
 
     st.session_state.messages.append({'role' : 'assistant', 'content': greetings})
 
@@ -338,28 +337,25 @@ if st.session_state.need_greetings :
 
 # Getting chat input from user
 prompt = st.chat_input("e.g. apa itu produk Marfu-p?")
-
-# Displaying chat prompt
+import time
 if prompt:
-    # Displaying user chat prompt
+    # Menampilkan pesan pengguna di chat
     st.chat_message("user").markdown(prompt)
 
-    # Saving user prompt to session state
-    st.session_state.messages.append({'role' : 'user', 'content': prompt})
+    # Placeholder untuk output yang akan di-update secara bertahap
+    response_placeholder = st.chat_message("assistant", avatar="assets/logo-PPKS.png")
 
-    # Getting response from llm model
+    # Mengambil respons dari model
     response = chain.invoke({
-        "chat_history" : st.session_state.chat_history, 
-        "question" : prompt
+        "chat_history": st.session_state.chat_history, 
+        "question": prompt
     })
 
+    # Variabel untuk menyimpan teks yang ditampilkan secara bertahap
+    typed_text = ""
+    for char in response:
+        typed_text += char  # Menambah karakter ke teks
+        response_placeholder.markdown(typed_text)  # Mengupdate placeholder dengan teks bertahap
+        time.sleep(0.05)  # Menentukan kecepatan karakter muncul, dapat diatur sesuai kebutuhan
 
-    # Displaying response
-    st.chat_message("assistant", avatar="asset/logo-PPKS.png").markdown(response)
-
-    # Saving response to chat history in session state
-    st.session_state.messages.append({'role' : 'assistant', 'content': response})
-
-    # Saving user and llm response to chat history
-    st.session_state.chat_history.append((prompt, response))
-
+    # Menyimpan pesan untuk ri
