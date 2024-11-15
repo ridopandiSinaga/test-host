@@ -307,7 +307,7 @@ chain = (
 col = st.columns([0.15, 0.85], vertical_alignment="center")
 
 with col[0]:
-    st.image(image="assets/logo-PPKS.png ", use_column_width=True)
+    st.image(image="assets/logo-PPKS.png", use_column_width=True)
 with col[1]:
     st.header("| Chat Bot PPKS 🤖")
 
@@ -325,7 +325,7 @@ if 'need_greetings' not in st.session_state:
 
 # Displaying all historical messages
 for message in st.session_state.messages:
-    st.chat_message(message['role'], avatar= "assets/logo-PPKS.png  " if message['role'] == "assistant" else None).markdown(message['content'])
+    st.chat_message(message['role'], avatar= "assets/logo-PPKS.png" if message['role'] == "assistant" else None).markdown(message['content'])
 
 if st.session_state.need_greetings :
 
